@@ -174,12 +174,9 @@ public class WeebCentralCrawlerAgent : AbstractCrawlerAgent, ICrawlerAgent
         using var page = await browser.NewPageAsync();
         await PreparePageForNavigationAsync(page);
         await page.SetUserAgentAsync(HttpClientDefaultUserAgent);
-        var pageNumber = string.IsNullOrWhiteSpace(paginationOptions?.ContinuationToken)
-                        ? 1
-                        : int.Parse(paginationOptions.ContinuationToken);
 
         var targetUri = new Uri(new Uri(_baseUri.ToString()), $"search?limit={paginationOptions?.Limit ?? 30}&offset={paginationOptions?.OffSet ?? 0}&text={titleName}&sort=Best+Match&order=Descending&official=Any&anime=Any&adult=Any&display_mode=Full+Display");
-        
+
         await page.GoToAsync(targetUri.ToString(), new NavigationOptions
         {
             WaitUntil = [WaitUntilNavigation.DOMContentLoaded, WaitUntilNavigation.Load, WaitUntilNavigation.Networkidle0],
@@ -197,23 +194,21 @@ public class WeebCentralCrawlerAgent : AbstractCrawlerAgent, ICrawlerAgent
         document.LoadHtml(content);
 
         List<Manga> mangas = [];
-        if (pageNumber > 0)
-        {
-            var nodes = document.DocumentNode.SelectNodes("//section[@id='search-results']//article[*[1][self::section]]");
 
-            if (nodes != null)
+        var nodes = document.DocumentNode.SelectNodes("//section[@id='search-results']//article[*[1][self::section]]");
+
+        if (nodes != null)
+        {
+            foreach (var divNode in nodes)
             {
-                foreach (var divNode in nodes)
-                {
-                    Manga manga = ConvertToMangaFromList(divNode);
-                    mangas.Add(manga);
-                }
+                Manga manga = ConvertToMangaFromList(divNode);
+                mangas.Add(manga);
             }
         }
 
         return PagedResultBuilder<Manga>.Create()
             .WithData(mangas)
-            .WithPaginationOptions(new PaginationOptions((pageNumber + 1).ToString()))
+            .WithPaginationOptions(new PaginationOptions(paginationOptions.OffSet + paginationOptions.Limit, paginationOptions.Limit))
             .Build();
     }
 
@@ -262,9 +257,9 @@ public class WeebCentralCrawlerAgent : AbstractCrawlerAgent, ICrawlerAgent
             .WithCoverUrl(new Uri(coverUrl))
             .WithCoverFileName(coverFileName)
             .WithWebsiteUrl(websiteUrl)
-            .WithAlternativeTitles(new Dictionary<string, string>()) 
-            .WithLatestChapterAvailable(0) 
-            .WithLastVolumeAvailable(0)    
+            .WithAlternativeTitles(new Dictionary<string, string>())
+            .WithLatestChapterAvailable(0)
+            .WithLastVolumeAvailable(0)
             .WithTags([.. genres])
             .WithOriginalLanguage(_language)
             .WithIsFamilySafe(!genres.Any(IsGenreNotFamilySafe))
