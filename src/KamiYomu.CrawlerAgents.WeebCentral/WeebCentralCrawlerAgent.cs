@@ -208,7 +208,7 @@ public class WeebCentralCrawlerAgent : AbstractCrawlerAgent, ICrawlerAgent
 
         return PagedResultBuilder<Manga>.Create()
             .WithData(mangas)
-            .WithPaginationOptions(new PaginationOptions(paginationOptions.OffSet + paginationOptions.Limit, paginationOptions.Limit))
+            .WithPaginationOptions(new PaginationOptions(paginationOptions.OffSet, paginationOptions.Limit))
             .Build();
     }
 
