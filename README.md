@@ -34,7 +34,7 @@ The package is published as `KamiYomu.CrawlerAgents.WeebCentral`.
       <packageSources>
         <clear />
         <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
-        <add key="github" value="https://nuget.pkg.github.com/KamiYomu/index.json" />
+	    <add key="kamiyomu" value="https://baget.kamiyomu.com/v3/index.json" />
       </packageSources>
     </configuration>
    ```
